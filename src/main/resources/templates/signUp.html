@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign up</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 22px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 2px 8px;
+            border: 1px solid #000;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h2>Registration form</h2>
+    <form id="signUp" method="post">
+        <div th:if="${param.error}">
+            This login already exist
+        </div>
+        <div>
+            <label for="login">Login:</label>
+            <input type="text" id="login" name="login">
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password">
+        </div>
+        <button type="submit">Sign Up</button>
+        <p>Or</p>
+        <a th:href="@{/login}" class="btn">Login</a>
+    </form>
+</div>
+</body>
+</html>

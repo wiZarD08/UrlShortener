@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"></html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>URL Shortener</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="main-content">
+            <h1>URL Shortener</h1>
+            <p class="warning">Warning: This website is an educational project, not a real service.</p>
+
+            <div class="input-container">
+                <input type="text" id="urlInput" placeholder="Enter your long url">
+                <button id="shortenBtn">Shorten</button>
+            </div>
+        </div>
+
+        <div id="resultContainer" class="hidden">
+            <div class="url-info">
+                <div class="url-row">
+                    <span class="url-label">Long URL:</span>
+                    <span class="url-value" id="longUrl"></span>
+                </div>
+                <div class="url-row">
+                    <span class="url-label">Generated short URL:</span>
+                    <span class="url-value" id="shortUrl"></span>
+                </div>
+                <div class="url-row">
+                    <span class="url-label">Custom short URL:</span>
+                    <span class="url-value" id="customShortUrl"></span>
+                </div>
+                <div class="url-row">
+                    <span class="url-label">Expiration period:</span>
+                    <span class="url-value" id="expirationPeriod"></span>
+                </div>
+            </div>
+
+            <div class="custom-path-container">
+                <p>You can add another link with your own path:</p>
+                <div class="input-container">
+                    <span class="domain-prefix" id="domainPrefix"></span>
+                    <input type="text" id="customPathInput" placeholder="Enter simple continuation">
+                    <button id="customPathBtn">Submit</button>
+                </div>
+                <p id="errorMessage" class="error-message"></p>
+            </div>
+            <div class="expiration-container">
+                <p>Short links will be available for this period:</p>
+                <select id="expirationSelect">
+                    <option value="90">90 days (3 months)</option>
+                    <option value="180">180 days (6 months)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+
+</html>

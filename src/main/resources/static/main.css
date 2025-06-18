@@ -1,0 +1,137 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f5f5f5;
+}
+
+.container {
+    text-align: center;
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+}
+
+.main-content {
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.warning {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.input-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#urlInput,
+#customPathInput {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+#urlInput::placeholder,
+#customPathInput::placeholder {
+    color: #aaa;
+}
+
+#shortenBtn,
+#customPathBtn {
+    padding: 12px 20px;
+    background-color: #a0d8b3;
+    border: none;
+    border-radius: 4px;
+    color: #333;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    white-space: nowrap;
+}
+
+#shortenBtn:hover,
+#customPathBtn:hover {
+    background-color: #8bc2a4;
+}
+
+.hidden {
+    display: none;
+}
+
+.url-info {
+    margin: 30px 0;
+    text-align: left;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 4px;
+}
+
+.url-row {
+    display: flex;
+    margin-bottom: 10px;
+    word-break: break-all;
+}
+
+.url-label {
+    font-weight: bold;
+    min-width: 180px;
+}
+
+.url-value {
+    flex: 1;
+}
+
+.custom-path-container {
+    margin-top: 30px;
+    text-align: left;
+}
+
+.domain-prefix {
+    padding: 12px;
+    background: #eee;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+    margin-right: -1px;
+}
+
+.error-message {
+    color: #d9534f;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.expiration-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.expiration-container p {
+    margin: 0;
+    white-space: nowrap;
+}
+
+.expiration-container select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    min-width: 180px;
+}
