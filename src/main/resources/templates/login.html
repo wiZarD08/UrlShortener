@@ -1,43 +1,188 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <title>Login</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-bottom: 40px;
-            font-size: 22px;
+            margin: 0;
+            background-color: #f5f5f5;
         }
-        .btn {
+
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background-color: #a0d8b3;
+            border: none;
+            border-radius: 4px;
+            color: #333;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 15px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #8bc2a4;
+        }
+
+        .divider {
+            margin: 20px 0;
+            color: #999;
+            position: relative;
+        }
+
+        .divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: #eee;
+            z-index: -1;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 10px;
+        }
+
+        .btn-signup {
             display: inline-block;
-            padding: 2px 8px;
-            border: 1px solid #000;
+            padding: 10px 20px;
+            background-color: white;
+            border: 1px solid #a0d8b3;
+            border-radius: 4px;
+            color: #333;
             text-decoration: none;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .btn-signup:hover {
+            background-color: #f0f0f0;
+        }
+
+        .alert {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
             font-size: 14px;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alternative-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-guest {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #555;
+            text-decoration: none;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .btn-guest:hover {
+            background-color: #f0f0f0;
+            border-color: #ccc;
         }
     </style>
 </head>
+
 <body>
-<form th:action="@{/login}" method="post">
-        <h2>Login</h2>
-        <div th:if="${param.error}">
-            Invalid username or password
-        </div>
-        <div th:if="${param.logout}">
-            You have been logged out
-        </div>
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username"/> <br>
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password"/> <br>
-        <button type="submit">Log in</button>
-        <p>Or</p>
-        <a th:href="@{/signUp}" class="btn">Sign Up</a>
-</form>
+    <div class="login-container">
+        <form th:action="@{/login}" method="post">
+            <h2>Login</h2>
+
+            <div th:if="${param.error}" class="alert alert-error">
+                Invalid username or password
+            </div>
+
+            <div th:if="${param.logout}" class="alert alert-success">
+                You have been logged out
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" />
+            </div>
+
+            <button type="submit">Log in</button>
+
+            <div class="divider"><span>Or</span></div>
+            <div class="alternative-options">
+                <a th:href="@{/signUp}" class="btn-signup">Sign Up</a>
+                <a th:href="@{/main}" class="btn-guest">Continue as guest</a>
+            </div>
+        </form>
+    </div>
 </body>
+
 </html>

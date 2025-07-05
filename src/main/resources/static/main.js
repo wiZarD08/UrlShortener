@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch('/api/url', {
+            const response = await fetch('/api/urls', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch(`/api/url/${currentUrlId}`, {
+            const response = await fetch(`/api/urls/${currentUrlId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function displayUrlInfo(urlId) {
         try {
-            const response = await fetch(`/api/url/${urlId}`);
+            const response = await fetch(`/api/urls/${urlId}`);
             if (response.ok) {
                 const urlData = await response.json();
                 longUrlElement.textContent = urlData.fullUrl;
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const expirationDays = parseInt(expirationSelect.value) || 90;
 
         try {
-            const response = await fetch(`/api/url/${currentUrlId}`, {
+            const response = await fetch(`/api/urls/${currentUrlId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,16 +1,31 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"></html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+</html>
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <title>URL Shortener</title>
     <link rel="stylesheet" href="main.css">
 </head>
 
 <body>
+    <div class="auth-container" th:if="${anonymous} == true">
+        <a href="/login" class="auth-link">Login</a>
+        <span class="auth-separator">|</span>
+        <a href="/signUp" class="auth-link">Sign Up</a>
+    </div>
+
+    <div class="auth-container" th:unless="${anonymous}">
+        <a href="/profile" class="profile-chip">
+            <div class="avatar" th:text="${username.substring(0,1)}"></div>
+            <span class="auth-link" th:text="${username}"></span>
+        </a>
+    </div>
+
     <div class="container">
         <div class="main-content">
             <h1>URL Shortener</h1>

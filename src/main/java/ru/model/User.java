@@ -1,6 +1,8 @@
 package ru.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -13,10 +15,12 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String login;
+    @NotBlank(message = "Username is required")
+    @Size(min = 2, max = 50, message = "Username must be between 2 and 50 characters")
+    @Column(name = "login")
+    private String username;
 
-    @Column(nullable = false)
+    @NotBlank(message = "Password is required")
     private String password;
 
     @OneToMany(mappedBy = "user")
@@ -25,8 +29,9 @@ public class User {
     protected User(){
     }
 
-    public User(String login) {
-        this.login = login;
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
     }
 
 //    private Integer timeZone = 0;

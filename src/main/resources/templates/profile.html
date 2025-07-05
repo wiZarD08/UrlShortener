@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Your Profile</title>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .profile-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            background-color: #a0d8b3;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .urls-list {
+            margin-top: 30px;
+        }
+
+        .url-item {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .url-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .full-url {
+            flex: 1;
+            min-width: 300px;
+            word-break: break-all;
+            padding: 8px;
+            background: #f8f8f8;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .utm-toggle {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .utm-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.toggle-slider {
+            background-color: #a0d8b3;
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            background-color: #a0d8b3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .action-btn:hover {
+            background-color: #8bc2a4;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            margin-left: 5px;
+        }
+
+        .copy-btn:hover {
+            color: #333;
+        }
+
+        .profile-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-left: auto;
+        }
+
+        .new-url-btn {
+            padding: 8px 16px;
+            background-color: #a0d8b3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .new-url-btn:hover {
+            background-color: #8bc2a4;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="profile-avatar" th:text="${#strings.substring(username, 0, 1).toUpperCase()}">U</div>
+            <h1 class="profile-name" th:text="${username}">Username</h1>
+
+            <div class="profile-actions">
+                <a href="/main" class="new-url-btn">Shorten New URL</a>
+            </div>
+        </div>
+
+        <div class="urls-list" id="urls-container">
+            <!-- URLs will be loaded here via API -->
+            <div class="loading-message">Loading your URLs...</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const token = document.querySelector('meta[name="_csrf"]').content;
+            const header = document.querySelector('meta[name="_csrf_header"]').content;
+
+            // Fetch URLs
+            fetch('/api/urls')
+                .then(response => response.json())
+                .then(urls => {
+                    const container = document.getElementById('urls-container');
+
+                    if (urls.length === 0) {
+                        container.innerHTML = '<div class="no-urls">You haven\'t created any URLs yet</div>';
+                        return;
+                    }
+
+                    container.innerHTML = '';
+
+                    urls.forEach(url => {
+                        const urlItem = document.createElement('div');
+                        urlItem.className = 'url-item';
+
+                        urlItem.innerHTML = `
+                            <div class="full-url">
+                                ${url.fullUrl}
+                                <button class="copy-btn" onclick="copyToClipboard('${url.fullUrl}')">⎘ copy</button>
+                            </div>
+                            <div class="toggle-container">
+                                <span class="toggle-label">UTM Tags</span>
+                                <label class="utm-toggle">
+                                    <input type="checkbox" ${url.utmEnabled ? 'checked' : ''} 
+                                           onchange="toggleUtm('${url.id}', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <button class="action-btn" onclick="viewStats('${url.id}')">View Stats</button>
+                        `;
+
+                        container.appendChild(urlItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading URLs:', error);
+                    document.getElementById('urls-container').innerHTML =
+                        '<div class="error-message">Error loading your URLs. Please refresh the page.</div>';
+                });
+        });
+
+        function toggleUtm(urlId, enabled) {
+            const token = document.querySelector('meta[name="_csrf"]').content;
+            const header = document.querySelector('meta[name="_csrf_header"]').content;
+
+            fetch(`/api/urls/${urlId}/utm`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [header]: token
+                },
+                body: JSON.stringify({ enabled: enabled })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to update UTM setting');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating UTM:', error);
+                    alert('Failed to update UTM setting. Please try again.');
+                });
+        }
+
+        function viewStats(urlId) {
+            window.location.href = `/stats/${urlId}`;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    const originalText = event.target.textContent;
+                    event.target.textContent = '✓ Copied!';
+                    setTimeout(() => {
+                        event.target.textContent = originalText;
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy:', err);
+                    event.target.textContent = '✗ Failed';
+                    setTimeout(() => {
+                        event.target.textContent = '⎘';
+                    }, 2000);
+                });
+        }
+    </script>
+</body>
+
+</html>

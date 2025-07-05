@@ -36,8 +36,5 @@ public class TestController {
 //        return "error";
 //    }
 
-    @GetMapping("/signUp")
-    public String registration() {
-        return "signUp";
-    }
+
 }

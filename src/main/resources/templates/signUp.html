@@ -1,47 +1,180 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8">
     <title>Sign up</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-bottom: 40px;
-            font-size: 22px;
+            margin: 0;
+            background-color: #f5f5f5;
         }
-        .btn {
+
+        .signup-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background-color: #a0d8b3;
+            border: none;
+            border-radius: 4px;
+            color: #333;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 15px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #8bc2a4;
+        }
+
+        .divider {
+            margin: 20px 0;
+            color: #999;
+            position: relative;
+        }
+
+        .divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: #eee;
+            z-index: -1;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 10px;
+        }
+
+        .btn-login {
             display: inline-block;
-            padding: 2px 8px;
-            border: 1px solid #000;
+            padding: 10px 20px;
+            background-color: white;
+            border: 1px solid #a0d8b3;
+            border-radius: 4px;
+            color: #333;
             text-decoration: none;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .btn-login:hover {
+            background-color: #f0f0f0;
+        }
+
+        .alert {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
             font-size: 14px;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alternative-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-guest {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #555;
+            text-decoration: none;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .btn-guest:hover {
+            background-color: #f0f0f0;
+            border-color: #ccc;
         }
     </style>
 </head>
+
 <body>
-<div>
-    <h2>Registration form</h2>
-    <form id="signUp" method="post">
-        <div th:if="${param.error}">
-            This login already exist
-        </div>
-        <div>
-            <label for="login">Login:</label>
-            <input type="text" id="login" name="login">
-        </div>
-        <div>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password">
-        </div>
-        <button type="submit">Sign Up</button>
-        <p>Or</p>
-        <a th:href="@{/login}" class="btn">Login</a>
-    </form>
-</div>
+    <div class="signup-container">
+        <h2>Create new account</h2>
+        <form th:action="@{/signUp}" method="post">
+            <div th:if="${error}" th:text="${error}" class="alert alert-error">
+                Please, choose another username
+            </div>
+            <div th:if="${not #lists.isEmpty(validationErrors)}" class="alert alert-error">
+                <div th:each="error : ${validationErrors}" th:text="${error}" style="margin-bottom: 5px;"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" maxlength="50" placeholder="Choose your username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" maxlength="50" placeholder="Create a password">
+            </div>
+
+            <button type="submit">Sign Up</button>
+
+            <div class="divider"><span>Or</span></div>
+            <div class="alternative-options">
+                <a th:href="@{/login}" class="btn-login">Login</a>
+                <a th:href="@{/main}" class="btn-guest">Continue as guest</a>
+            </div>
+        </form>
+    </div>
 </body>
+
 </html>

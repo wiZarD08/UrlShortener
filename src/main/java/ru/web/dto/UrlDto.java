@@ -8,4 +8,5 @@ public class UrlDto {
     private String shortUrl;
     private String customShortUrl;
     private Integer expirationPeriod;
+    private boolean utmSupport;
 }

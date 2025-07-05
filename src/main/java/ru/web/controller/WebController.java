@@ -1,25 +1,101 @@
 package ru.web.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.constraints.Size;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 import ru.model.Url;
+import ru.model.User;
 import ru.repository.UrlRepository;
+import ru.repository.UserRepository;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
+@RequiredArgsConstructor
+@Validated
 public class WebController {
     private final UrlRepository urlRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
-    public WebController(UrlRepository urlRepository) {
-        this.urlRepository = urlRepository;
+    @GetMapping("/login")
+    public String login() {
+        return "login";
     }
 
-    // need to add http:// to all that does not have?
+    @GetMapping("/signUp")
+    public String signUp() {
+        return "signUp";
+    }
+
+    @PostMapping("/signUp")
+    public String signUp(@RequestParam String username,
+                         @RequestParam String password,
+                          HttpServletRequest request, Model model) {
+        if (password != null && (password.length() < 4 || password.length() > 50)) {
+            model.addAttribute("error", "Password must be between 4 and 50 characters");
+            return "signUp";
+        }
+        Optional<User> userOpt = userRepository.findByUsername(username);
+        if (userOpt.isPresent()) {
+            model.addAttribute("error", "Please, choose another username");
+            return "signUp";
+        }
+        User user = new User(username, passwordEncoder.encode(password));
+        System.out.println(passwordEncoder.encode(password) + " len: " + passwordEncoder.encode(password).length());
+        try {
+            userRepository.save(user);
+        } catch (ConstraintViolationException e) {
+            List<String> validationErrors = new ArrayList<>();
+            e.getConstraintViolations().forEach(x -> validationErrors.add(x.getMessage()));
+            model.addAttribute("validationErrors", validationErrors);
+            return "signUp";
+        }
+
+        authenticateUser(username, password, request);
+        return "redirect:/main";
+    }
+
+    private void authenticateUser(String username, String password, HttpServletRequest request) {
+        UsernamePasswordAuthenticationToken authToken =
+                new UsernamePasswordAuthenticationToken(username, password);
+
+        // use JpaUserDetailsService
+        Authentication authentication = authenticationManager.authenticate(authToken);
+
+        // Manually set authentication in SecurityContext
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // For adding JSESSIONID cookie by Spring
+        request.getSession().setAttribute(
+                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                SecurityContextHolder.getContext()
+        );
+    }
 
     @GetMapping("/code/{code}")
     public String redirectToFullUrl(@PathVariable String code, HttpServletResponse response) {
@@ -42,7 +118,28 @@ public class WebController {
     }
 
     @GetMapping("/main")
-    public String getMainPage() {
+    public String getMainPage(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication instanceof AnonymousAuthenticationToken) {
+            model.addAttribute("anonymous", true);
+        } else if (authentication instanceof UsernamePasswordAuthenticationToken) {
+            model.addAttribute("anonymous", false);
+            model.addAttribute("username", authentication.getName());
+            System.out.println("real");
+        }
         return "main";
+    }
+
+    @GetMapping("/profile")
+    public String getProfilePage(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (authentication instanceof AnonymousAuthenticationToken) {
+//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authenticated user");
+//        }
+
+        model.addAttribute("username", authentication.getName());
+
+        return "profile";
     }
 }
