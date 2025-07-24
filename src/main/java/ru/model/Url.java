@@ -43,7 +43,7 @@ public class Url {
     @OneToMany(mappedBy = "url")
     private List<UtmTag> utm_tags = new ArrayList<>();
 
-    protected Url() {
+    public Url() {
     }
 
     public Url(String fullUrl, String code, int days) {

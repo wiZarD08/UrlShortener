@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.model.Url;
+import ru.model.User;
 import ru.web.dto.UrlDto;
 
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ public interface UrlDtoMapper {
     @Mapping(target = "shortUrl", expression = "java(getShortUrl(request, url.getCode()))")
     @Mapping(target = "customShortUrl", expression = "java(getCustomShortUrl(request, url.getCustomPath()))")
     @Mapping(target = "expirationPeriod", expression = "java(countDaysLeft(url))")
+    @Mapping(target = "userId", expression = "java(getUserId(url.getUser()))")
     UrlDto toDto(Url url, HttpServletRequest request);
 
     default String getShortUrl(HttpServletRequest request, String code) {
@@ -32,5 +34,9 @@ public interface UrlDtoMapper {
     default Integer countDaysLeft(Url url) {
         LocalDate.now();
         return (int) ChronoUnit.DAYS.between(LocalDate.now(), url.getExpirationDate());
+    }
+
+    default Long getUserId(User user) {
+        return (user == null) ? null : user.getId();
     }
 }

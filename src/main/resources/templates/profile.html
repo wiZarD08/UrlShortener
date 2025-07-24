@@ -205,7 +205,7 @@
             const header = document.querySelector('meta[name="_csrf_header"]').content;
 
             // Fetch URLs
-            fetch('/api/urls')
+            fetch('/api/urls/user')
                 .then(response => response.json())
                 .then(urls => {
                     const container = document.getElementById('urls-container');
@@ -251,13 +251,13 @@
             const token = document.querySelector('meta[name="_csrf"]').content;
             const header = document.querySelector('meta[name="_csrf_header"]').content;
 
-            fetch(`/api/urls/${urlId}/utm`, {
-                method: 'PUT',
+            fetch(`/api/urls/${urlId}/utm_support`, {
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     [header]: token
                 },
-                body: JSON.stringify({ enabled: enabled })
+                body: JSON.stringify({ utmSupport: enabled })
             })
                 .then(response => {
                     if (!response.ok) {

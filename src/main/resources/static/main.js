@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const response = await fetch(`/api/urls/${currentUrlId}`, {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     [document.querySelector('meta[name="_csrf_header"]').content]:
@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const response = await fetch(`/api/urls/${currentUrlId}`, {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     [document.querySelector('meta[name="_csrf_header"]').content]:
