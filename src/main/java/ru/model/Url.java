@@ -1,10 +1,8 @@
 package ru.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -50,6 +48,8 @@ public class Url {
         this.code = code;
         if (fullUrl.startsWith("http")) this.fullUrl = fullUrl;
         else this.fullUrl = "https://" + fullUrl;
+        if (this.fullUrl.endsWith("/"))
+            this.fullUrl = this.fullUrl.substring(0, fullUrl.length() - 1);
         creationDate = LocalDate.now();
         expirationDate = creationDate.plusDays(days);
     }

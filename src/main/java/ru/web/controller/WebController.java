@@ -2,11 +2,8 @@ package ru.web.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,18 +13,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.server.ResponseStatusException;
 import ru.model.Url;
 import ru.model.User;
 import ru.repository.UrlRepository;
 import ru.repository.UserRepository;
+import ru.service.UrlService;
+import ru.service.UtmStatService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +37,8 @@ public class WebController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final UrlService urlService;
+    private final UtmStatService utmStatService;
 
     @GetMapping("/login")
     public String login() {
@@ -55,7 +53,7 @@ public class WebController {
     @PostMapping("/signUp")
     public String signUp(@RequestParam String username,
                          @RequestParam String password,
-                          HttpServletRequest request, Model model) {
+                         HttpServletRequest request, Model model) {
         if (password != null && (password.length() < 4 || password.length() > 50)) {
             model.addAttribute("error", "Password must be between 4 and 50 characters");
             return "signUp";
@@ -98,23 +96,33 @@ public class WebController {
     }
 
     @GetMapping("/code/{code}")
-    public String redirectToFullUrl(@PathVariable String code, HttpServletResponse response) {
+    public String redirectToFullUrl(@PathVariable String code, HttpServletRequest request, HttpServletResponse response) {
         Optional<Url> urlOpt = urlRepository.findByCode(code);
         if (urlOpt.isEmpty()) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return "notFoundError";
         }
-        return "redirect:" + urlOpt.get().getFullUrl();
+        if (!urlService.deleteIfExpired(urlOpt.get())) {
+            utmStatService.checkUtmTags(urlOpt.get(), request);
+            utmStatService.writeStatistics(urlOpt.get(), request);
+            return "redirect:" + urlOpt.get().getFullUrl();
+        }
+        return "notFoundError";
     }
 
     @GetMapping("/str/{customPath}")
-    public String redirectToFullUrlUsingCustomPath(@PathVariable String customPath, HttpServletResponse response) {
+    public String redirectToFullUrlUsingCustomPath(@PathVariable String customPath, HttpServletRequest request, HttpServletResponse response) {
         Optional<Url> urlOpt = urlRepository.findByCustomPath(customPath);
         if (urlOpt.isEmpty()) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return "notFoundError";
         }
-        return "redirect:" + urlOpt.get().getFullUrl();
+        if (!urlService.deleteIfExpired(urlOpt.get())) {
+            utmStatService.checkUtmTags(urlOpt.get(), request);
+            utmStatService.writeStatistics(urlOpt.get(), request);
+            return "redirect:" + urlOpt.get().getFullUrl();
+        }
+        return "notFoundError";
     }
 
     @GetMapping("/main")
@@ -141,5 +149,10 @@ public class WebController {
         model.addAttribute("username", authentication.getName());
 
         return "profile";
+    }
+
+    @GetMapping("/stats/{urlId}")
+    public String getStatisticsUtmPage(Model model) {
+        return "statistics";
     }
 }

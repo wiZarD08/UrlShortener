@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import ru.model.Url;
 import ru.repository.UrlRepository;
@@ -18,9 +19,11 @@ import ru.web.mapper.UrlDtoMapper;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-@Component
+@Service
 @RequiredArgsConstructor
 public class UrlService {
     private final UrlRepository urlRepository;
@@ -40,6 +43,11 @@ public class UrlService {
     public UrlDto getUrlById(Long id, HttpServletRequest request) {
         Optional<Url> url = urlRepository.findById(id);
         return url.map(value -> urlDtoMapper.toDto(value, request)).orElse(null);
+    }
+
+    public boolean isUrlSupportUtm(Long id) {
+        Optional<Url> url = urlRepository.findById(id);
+        return url.map(Url::isUtmSupport).orElse(false);
     }
 
     public UrlDto createAndSaveUrl(CreateUrlRequest urlRequest, HttpServletRequest httpRequest, String username) {
@@ -115,8 +123,17 @@ public class UrlService {
         return urlRepository.findById(id).map(x -> {
             x.setUtmSupport(utmSupport);
             urlRepository.save(x);
+            System.out.println("X utmSupport:    : " + x.isUtmSupport());
             return urlDtoMapper.toDto(x, request);
         }).orElse(null);
+    }
+
+    public boolean deleteIfExpired(Url url) {
+        if (url.getExpirationDate().isBefore(LocalDate.now())) {
+            urlRepository.deleteById(url.getId());
+            return true;
+        }
+        return false;
     }
 
     public UrlDto deleteUrl(Long id, HttpServletRequest request) {

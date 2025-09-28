@@ -37,7 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (response.ok) {
-                const urlId = await response.text();
+                const urlData = await response.json();
+                const urlId = urlData.id;
                 currentUrlId = urlId;
                 await displayUrlInfo(urlId);
                 domainPrefixElement.textContent = window.location.origin + '/str/';

@@ -20,13 +20,15 @@ public interface UrlDtoMapper {
 
     default String getShortUrl(HttpServletRequest request, String code) {
         StringBuffer buffer = request.getRequestURL();
-        return buffer.replace(buffer.indexOf("api/url"), buffer.length(), "").append("code/").append(code.trim()).toString();
+        int index = Math.max(buffer.indexOf("api/url"), buffer.indexOf("utm/generate"));
+        return buffer.replace(index, buffer.length(), "").append("code/").append(code.trim()).toString();
     }
 
     default String getCustomShortUrl(HttpServletRequest request, String customPath) {
         if (customPath != null && !customPath.isEmpty()) {
             StringBuffer buffer = request.getRequestURL();
-            return buffer.replace(buffer.indexOf("api/url"), buffer.length(), "").append("str/").append(customPath.trim()).toString();
+            int index = Math.max(buffer.indexOf("api/url"), buffer.indexOf("utm/generate"));
+            return buffer.replace(index, buffer.length(), "").append("str/").append(customPath.trim()).toString();
         }
         return null;
     }

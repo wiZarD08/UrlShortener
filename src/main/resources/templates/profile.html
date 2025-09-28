@@ -229,8 +229,8 @@
                             <div class="toggle-container">
                                 <span class="toggle-label">UTM Tags</span>
                                 <label class="utm-toggle">
-                                    <input type="checkbox" ${url.utmEnabled ? 'checked' : ''} 
-                                           onchange="toggleUtm('${url.id}', this.checked)">
+                                    <input type="checkbox" ${url.utmSupport ? 'checked' : ''} 
+                                    onchange="toggleUtm('${url.id}', this.checked)">
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -250,6 +250,7 @@
         function toggleUtm(urlId, enabled) {
             const token = document.querySelector('meta[name="_csrf"]').content;
             const header = document.querySelector('meta[name="_csrf_header"]').content;
+            const boolUtmSupport = enabled;
 
             fetch(`/api/urls/${urlId}/utm_support`, {
                 method: 'PATCH',
@@ -257,7 +258,7 @@
                     'Content-Type': 'application/json',
                     [header]: token
                 },
-                body: JSON.stringify({ utmSupport: enabled })
+                body: JSON.stringify(boolUtmSupport)
             })
                 .then(response => {
                     if (!response.ok) {
