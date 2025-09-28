@@ -6,17 +6,17 @@ import lombok.Data;
 
 @Data
 public class UtmTagDto {
-    @NotBlank
+    @NotBlank(message = "The source is required")
     @Pattern(regexp = "^[a-zA-Z0-9\\s\\-\\.\\_]*$",
             message = "Source contains invalid characters. Only letters, numbers, spaces, hyphens, dots, and underscores are allowed")
     private String source;
 
-    @NotBlank
+    @NotBlank(message = "The medium is required")
     @Pattern(regexp = "^[a-zA-Z0-9\\s\\-\\.\\_]*$",
             message = "Medium contains invalid characters. Only letters, numbers, spaces, hyphens, dots, and underscores are allowed")
     private String medium;
 
-    @NotBlank
+    @NotBlank(message = "The campaign is required")
     @Pattern(regexp = "^[a-zA-Z0-9\\s\\-\\.\\_]*$",
             message = "Campaign contains invalid characters. Only letters, numbers, spaces, hyphens, dots, and underscores are allowed")
     private String campaign;

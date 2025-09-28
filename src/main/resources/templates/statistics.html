@@ -431,6 +431,7 @@
                 <div class="form-group">
                     <label class="form-label" for="content">Content (Optional)</label>
                     <input type="text" id="content" class="form-input" placeholder="e.g., article3, text_link">
+                    <div class="error-message" id="contentError"></div>
                 </div>
                 <button type="submit" class="generate-btn" id="generateBtn">Generate UTM URLs</button>
             </form>
@@ -632,18 +633,18 @@
             clearErrors();
 
             // Validate required fields
-            if (!source) {
-                showError('sourceError', 'Source is required');
-                return;
-            }
-            if (!medium) {
-                showError('mediumError', 'Medium is required');
-                return;
-            }
-            if (!campaign) {
-                showError('campaignError', 'Campaign is required');
-                return;
-            }
+            // if (!source) {
+            //     showError('sourceError', 'Source is required');
+            //     return;
+            // }
+            // if (!medium) {
+            //     showError('mediumError', 'Medium is required');
+            //     return;
+            // }
+            // if (!campaign) {
+            //     showError('campaignError', 'Campaign is required');
+            //     return;
+            // }
 
             // Create UTM DTO
             const utmTagDto = {
@@ -670,7 +671,10 @@
             })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Failed to generate UTM URLs');
+                        // Parse the error response as JSON and throw it
+                        return response.json().then(errorData => {
+                            throw errorData; // Throw the parsed error data object
+                        });
                     }
                     return response.json();
                 })
@@ -678,15 +682,40 @@
                     displayResults(data);
                     showSuccess('URLs generated successfully!');
                 })
-                .catch(error => {
-                    console.error('Error generating UTM URLs:', error);
-                    alert('catch error');
-                    showError('generalError', 'Failed to generate URLs. Please try again.');
+                .catch(errorData => {
+                    console.error('Validation error:', errorData);
+                    displayValidationErrors(errorData);
                 })
                 .finally(() => {
                     // generateBtn.disabled = false;
                     generateBtn.textContent = 'Generate UTM URLs';
                 });
+        }
+
+        function displayValidationErrors(errorData) {
+            // Clear previous errors
+            clearErrors();
+
+            console.log('Error data:', errorData); // For debugging
+
+            // Handle the specific error structure from your backend
+            if (errorData.errors && Array.isArray(errorData.errors)) {
+                // Your backend returns errors as an array of objects
+                errorData.errors.forEach(error => {
+                    const field = error.field; // "medium", "source", etc.
+                    const message = error.defaultMessage; // The actual error message
+
+                    // Map field names to error element IDs
+                    const errorElementId = field + 'Error';
+                    showError(errorElementId, message);
+                });
+            } else if (errorData.message) {
+                // Fallback: show general error message
+                showError('generalError', errorData.message);
+            } else {
+                // Ultimate fallback
+                showError('generalError', 'Validation failed. Please check your inputs.');
+            }
         }
 
         function displayResults(data) {

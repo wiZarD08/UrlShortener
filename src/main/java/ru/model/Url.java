@@ -34,6 +34,12 @@ public class Url {
 
     private boolean utmSupport;
 
+    @Column(nullable = false)
+    private Long clicks = 0L;
+
+    @Column(nullable = false)
+    private Long uniqueClicks = 0L;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
