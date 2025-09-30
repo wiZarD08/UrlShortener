@@ -16,7 +16,9 @@ import ru.model.UtmTag;
 import ru.repository.ClickTimeRepository;
 import ru.repository.StatisticsRepository;
 import ru.repository.UtmTagRepository;
+import ru.web.dto.StatisticsDto;
 import ru.web.dto.UtmTagDto;
+import ru.web.mapper.StatDtoMapper;
 import ru.web.mapper.UtmTagDtoMapper;
 
 import java.io.File;
@@ -32,6 +34,7 @@ public class UtmStatService {
     private final StatisticsRepository statRepository;
     private final ClickTimeRepository timeRepository;
     private final UtmTagDtoMapper utmMapper;
+    private final StatDtoMapper statMapper;
     private final DatabaseReader dbReader;
     private static UserAgentAnalyzer userAgentAnalyzer;
     private static final String SOURCE = "utm_source";
@@ -50,12 +53,13 @@ public class UtmStatService {
     private static final String GEO_LITE_DB = "GeoLite2-City.mmdb";
 
     public UtmStatService(UtmTagDtoMapper utmMapper, UtmTagRepository utmRepository,
-                          StatisticsRepository statRepository, ClickTimeRepository timeRepository)
+                          StatisticsRepository statRepository, ClickTimeRepository timeRepository, StatDtoMapper statMapper)
             throws IOException {
         this.utmMapper = utmMapper;
         this.utmRepository = utmRepository;
         this.statRepository = statRepository;
         this.timeRepository = timeRepository;
+        this.statMapper = statMapper;
 
         File database = new ClassPathResource(GEO_LITE_DB).getFile();
         dbReader = new DatabaseReader.Builder(database).build();
@@ -124,7 +128,11 @@ public class UtmStatService {
                 break;
             }
         }
-        if (!isInDb) statRepository.save(statistics);
+        url.addClick();
+        if (!isInDb) {
+            url.addUniqueClick();
+            statRepository.save(statistics);
+        }
 
         ClickTime clickTime = new ClickTime();
         clickTime.setUrl(url);
@@ -146,6 +154,10 @@ public class UtmStatService {
     private String makeNotNull(String string) {
         if (string == null || string.isEmpty()) return "Unknown";
         return string;
+    }
+
+    public List<StatisticsDto> getStatList(Long urlId) {
+        return statRepository.findByUrlId(urlId).stream().map(statMapper::toDto).toList();
     }
 
     public List<UtmTagDto> getUtmList(Long urlId) {

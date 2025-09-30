@@ -22,7 +22,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UrlApiController {
     private final UrlService service;
-//    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @GetMapping
     public List<UrlDto> getUrlList(HttpServletRequest request) {
@@ -31,15 +30,12 @@ public class UrlApiController {
 
     @GetMapping("/user")
     public List<UrlDto> getUrlListCreatedByUser(HttpServletRequest request) {
-//        logger.debug("in getUrlListCreatedByUser");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof UsernamePasswordAuthenticationToken) {
-//            logger.debug("authentication instanceof UsernamePasswordAuthenticationToken");
             if (authentication.getAuthorities().stream()
                     .anyMatch(x -> x.getAuthority().equalsIgnoreCase("ROLE_ADMIN")))
                 return service.getAllUrls(request);
-//            logger.debug("after getUrlList {}", authentication.getAuthorities());
-            //            list.forEach(x -> {if (x.isUtmSupport()) System.out.println("joynrrg");});
+
             return service.getAllUrlsCreatedByUser(authentication.getName(), request);
         }
         return new ArrayList<>();
@@ -63,20 +59,28 @@ public class UrlApiController {
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @urlService.isOwner(#id, authentication.name)")
     public UrlDto updateUrl(@RequestBody UpdateUrlRequest urlRequest, @PathVariable Long id, HttpServletRequest request) {
         return service.updateUrl(urlRequest, id, request);
     }
 
     @PatchMapping("/{id}/utm_support")
+    @PreAuthorize("hasRole('ADMIN') or @urlService.isOwner(#id, authentication.name)")
     public UrlDto setUtmSupportToUrl(@RequestBody boolean utmSupport, @PathVariable Long id, HttpServletRequest request) {
-        System.out.println("got boolean : " + utmSupport);
         UrlDto urlDto = service.setUrmSupport(id, utmSupport, request);
         if (urlDto == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "no url with " + id + " id");
         return urlDto;
     }
 
+    @PatchMapping("/{id}/add_days")
+    @PreAuthorize("hasRole('ADMIN') or @urlService.isOwner(#id, authentication.name)")
+    public UrlDto extendExpirationPeriod(@RequestBody int days, @PathVariable Long id, HttpServletRequest request) {
+        UrlDto urlDto = service.extendExpirationPeriod(id, days, request);
+        if (urlDto == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "no url with " + id + " id");
+        return urlDto;
+    }
+
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @urlService.isOwner(#id, authentication.name)")
     public UrlDto deleteUrl(@PathVariable Long id, HttpServletRequest request) {
         UrlDto urlDto = service.deleteUrl(id, request);
         if (urlDto == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "no url with " + id + " id");

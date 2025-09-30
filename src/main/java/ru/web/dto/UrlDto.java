@@ -11,4 +11,6 @@ public class UrlDto {
     private Integer expirationPeriod;
     private Long userId;
     private boolean utmSupport;
+    private Long clicks;
+    private Long uniqueClicks;
 }

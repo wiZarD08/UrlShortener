@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.service.UrlService;
 import ru.service.UtmStatService;
+import ru.web.dto.StatisticsDto;
 import ru.web.dto.UtmTagDto;
 
 import java.util.ArrayList;
@@ -20,9 +21,8 @@ public class StatApiController {
     private final UrlService urlService;
 
     @GetMapping("/{urlId}")
-    public List<UtmTagDto> getUrlStatistics(@PathVariable Long urlId) {
-        if (!urlService.isUrlSupportUtm(urlId)) return new ArrayList<>();
-        return statService.getUtmList(urlId);
+    public List<StatisticsDto> getUrlStatistics(@PathVariable Long urlId) {
+        return statService.getStatList(urlId);
     }
 
     @GetMapping("/utm/{urlId}")

@@ -59,6 +59,14 @@ public class Url {
         creationDate = LocalDate.now();
         expirationDate = creationDate.plusDays(days);
     }
+
+    public void addClick() {
+        clicks++;
+    }
+
+    public void addUniqueClick() {
+        uniqueClicks++;
+    }
 }
 
 // = ZonedDateTime.now(Clock.systemUTC());

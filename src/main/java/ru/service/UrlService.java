@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import ru.model.Url;
@@ -30,6 +29,7 @@ public class UrlService {
     private final UserRepository userRepository;
     private final UrlDtoMapper urlDtoMapper;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final int MAX_EXPIRATION_DATE = 360;
 
     public List<UrlDto> getAllUrls(HttpServletRequest request) {
         return urlRepository.findAll().stream().map(x -> urlDtoMapper.toDto(x, request)).toList();
@@ -123,9 +123,22 @@ public class UrlService {
         return urlRepository.findById(id).map(x -> {
             x.setUtmSupport(utmSupport);
             urlRepository.save(x);
-            System.out.println("X utmSupport:    : " + x.isUtmSupport());
             return urlDtoMapper.toDto(x, request);
         }).orElse(null);
+    }
+
+    public UrlDto extendExpirationPeriod(Long id, int days, HttpServletRequest request) {
+        Optional<Url> urlOpt = urlRepository.findById(id);
+        if (urlOpt.isEmpty()) return null;
+        Url url = urlOpt.get();
+        LocalDate newExpDate = url.getExpirationDate().plusDays(days);
+        if (ChronoUnit.DAYS.between(LocalDate.now(), newExpDate) > MAX_EXPIRATION_DATE)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't extend more than on "
+                    + (MAX_EXPIRATION_DATE - ChronoUnit.DAYS.between(LocalDate.now(), url.getExpirationDate()))
+                    + " days");
+        url.setExpirationDate(newExpDate);
+        urlRepository.save(url);
+        return urlDtoMapper.toDto(url, request);
     }
 
     public boolean deleteIfExpired(Url url) {
