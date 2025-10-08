@@ -37,6 +37,8 @@ public class UrlService {
 
     public List<UrlDto> getAllUrlsCreatedByUser(String username, HttpServletRequest request) {
         return urlRepository.findByUserUsername(username).stream()
+                .sorted(Comparator.comparing(Url::getCreationDate)
+                        .thenComparing(Comparator.comparingLong(Url::getClicks).reversed()))
                 .map(x -> urlDtoMapper.toDto(x, request)).toList();
     }
 

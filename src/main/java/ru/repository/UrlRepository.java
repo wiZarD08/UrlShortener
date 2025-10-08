@@ -8,6 +8,8 @@ import java.util.Optional;
 
 public interface UrlRepository extends JpaRepository<Url, Long> {
     Optional<Url> findByCode(String code);
+
     Optional<Url> findByCustomPath(String customPath);
+
     List<Url> findByUserUsername(String username);
 }

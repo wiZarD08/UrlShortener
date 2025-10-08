@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,7 +14,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,7 +31,6 @@ import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
-@Validated
 public class WebController {
     private final UrlRepository urlRepository;
     private final UserRepository userRepository;
@@ -64,7 +63,7 @@ public class WebController {
             return "signUp";
         }
         User user = new User(username, passwordEncoder.encode(password));
-        System.out.println(passwordEncoder.encode(password) + " len: " + passwordEncoder.encode(password).length());
+
         try {
             userRepository.save(user);
         } catch (ConstraintViolationException e) {
@@ -103,8 +102,10 @@ public class WebController {
             return "notFoundError";
         }
         if (!urlService.deleteIfExpired(urlOpt.get())) {
-            utmStatService.checkUtmTags(urlOpt.get(), request);
-            utmStatService.writeStatistics(urlOpt.get(), request);
+            if (urlOpt.get().getUser() != null) {
+                utmStatService.checkUtmTags(urlOpt.get(), request);
+                utmStatService.writeStatistics(urlOpt.get(), request);
+            }
             return "redirect:" + urlOpt.get().getFullUrl();
         }
         return "notFoundError";
@@ -134,7 +135,6 @@ public class WebController {
         } else if (authentication instanceof UsernamePasswordAuthenticationToken) {
             model.addAttribute("anonymous", false);
             model.addAttribute("username", authentication.getName());
-            System.out.println("real");
         }
         return "main";
     }
@@ -142,17 +142,13 @@ public class WebController {
     @GetMapping("/profile")
     public String getProfilePage(Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        if (authentication instanceof AnonymousAuthenticationToken) {
-//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authenticated user");
-//        }
-
         model.addAttribute("username", authentication.getName());
-
         return "profile";
     }
 
     @GetMapping("/stats/{urlId}")
-    public String getStatisticsUtmPage(Model model) {
+    @PreAuthorize("hasRole('ADMIN') or @urlService.isOwner(#urlId, authentication.name)")
+    public String getStatisticsUtmPage(@PathVariable Long urlId) {
         return "statistics";
     }
 }

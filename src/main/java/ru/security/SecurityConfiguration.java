@@ -8,33 +8,25 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-
-import java.util.List;
 
 @Configuration
-@EnableWebSecurity//(debug = true)
+@EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests((requests) ->
-                        requests.requestMatchers("profile").authenticated()
+                        requests.requestMatchers("/profile", "/stats/**").authenticated()
                                 .requestMatchers(HttpMethod.PATCH, "/api/urls/**").authenticated()
                                 .requestMatchers(HttpMethod.DELETE, "/api/urls/**").authenticated()
                                 .anyRequest().permitAll())
-//                .cors(cors -> cors.configurationSource(config -> {
-//                    CorsConfiguration corsConfig = new CorsConfiguration();
-//                    corsConfig.setAllowedOrigins(List.of("*"));
-//                    return corsConfig;
-//                }))
-//                .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/main").permitAll())
+                .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/main")
+                        .invalidateHttpSession(true).deleteCookies("JSESSIONID").permitAll())
                 .build();
     }
 

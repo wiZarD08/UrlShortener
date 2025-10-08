@@ -1,12 +1,10 @@
 package ru.web.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.service.UrlService;
 import ru.service.UtmStatService;
+import ru.web.dto.DateDto;
 import ru.web.dto.StatisticsDto;
 import ru.web.dto.UtmTagDto;
 
@@ -29,5 +27,15 @@ public class StatApiController {
     public List<UtmTagDto> getUtmList(@PathVariable Long urlId) {
         if (!urlService.isUrlSupportUtm(urlId)) return new ArrayList<>();
         return statService.getUtmList(urlId);
+    }
+
+    @GetMapping("date/{urlId}")
+    public List<DateDto> getDateStats(@PathVariable Long urlId, @RequestParam int timeZone) {
+        return statService.getDateStats(urlId, timeZone);
+    }
+
+    @GetMapping("time/{urlId}")
+    public List<Integer> getTimeStats(@PathVariable Long urlId, @RequestParam int timeZone) {
+        return statService.getTimeStats(urlId, timeZone);
     }
 }

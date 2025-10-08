@@ -16,6 +16,7 @@ import ru.model.UtmTag;
 import ru.repository.ClickTimeRepository;
 import ru.repository.StatisticsRepository;
 import ru.repository.UtmTagRepository;
+import ru.web.dto.DateDto;
 import ru.web.dto.StatisticsDto;
 import ru.web.dto.UtmTagDto;
 import ru.web.mapper.StatDtoMapper;
@@ -24,9 +25,9 @@ import ru.web.mapper.UtmTagDtoMapper;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 public class UtmStatService {
@@ -70,26 +71,6 @@ public class UtmStatService {
                 .build();
     }
 
-    @Transactional
-    public void checkUtmTags(Url url, HttpServletRequest request) {
-        Map<String, String[]> params = request.getParameterMap();
-        if (params.containsKey(SOURCE) && params.containsKey(MEDIUM) && params.containsKey(CAMPAIGN)) {
-            String content = null;
-            if (params.containsKey(CONTENT)) content = params.get(CONTENT)[0];
-            Optional<UtmTag> utmTagOpt = utmRepository.findUtmTag(params.get(SOURCE)[0], params.get(MEDIUM)[0],
-                    params.get(CAMPAIGN)[0], content, url.getId());
-            if (utmTagOpt.isPresent()) {
-                UtmTag utmTag = utmTagOpt.get();
-                utmTag.setClicks(utmTag.getClicks() + 1);
-                utmRepository.save(utmTag);
-            } else {
-                UtmTag utmTag = new UtmTag(params.get(SOURCE)[0], params.get(MEDIUM)[0],
-                        params.get(CAMPAIGN)[0], content, 1L, url);
-                utmRepository.save(utmTag);
-            }
-        }
-    }
-
     public void writeStatistics(Url url, HttpServletRequest request) {
         Statistics statistics = new Statistics();
         statistics.setIpAddress(getRequestIpAddress(request));
@@ -98,18 +79,9 @@ public class UtmStatService {
             CityResponse response = dbReader.city(InetAddress.getByName(statistics.getIpAddress()));
             statistics.setCountry(response.getCountry().getName());
             statistics.setCity(response.getCity().getName());
-        } catch (IOException e) {
+        } catch (IOException | GeoIp2Exception e) {
             statistics.setCountry("Unknown");
             statistics.setCity("Unknown");
-        } catch (GeoIp2Exception e) {
-            // if running from localhost
-            try {
-                CityResponse response = dbReader.city(InetAddress.getByName("5.44.168.194"));
-                statistics.setCountry(response.getCountry().getName());
-                statistics.setCity(response.getCity().getName());
-            } catch (IOException | GeoIp2Exception ex) {
-                throw new RuntimeException(ex);
-            }
         }
 
         UserAgent userAgent = userAgentAnalyzer.parse(request.getHeader(USER_AGENT));
@@ -118,7 +90,7 @@ public class UtmStatService {
         statistics.setOS(makeNotNull(userAgent.getValue(UserAgent.OPERATING_SYSTEM_NAME)));
 
         statistics.setUrl(url);
-        List<Statistics> statList = statRepository.findByIpAddress(statistics.getIpAddress());
+        List<Statistics> statList = statRepository.findByIpAddressAndUrlId(statistics.getIpAddress(), url.getId());
         boolean isInDb = false;
         for (Statistics s : statList) {
             if (s.getDevice().equals(statistics.getDevice()) &&
@@ -160,6 +132,65 @@ public class UtmStatService {
         return statRepository.findByUrlId(urlId).stream().map(statMapper::toDto).toList();
     }
 
+    public List<Integer> getTimeStats(Long urlId, int timeZone) {
+        Integer[] resultArray = new Integer[24];
+        Arrays.fill(resultArray, 0);
+
+        List<ZonedDateTime> zonedDateTimeList = timeRepository.findByUrlId(urlId).stream()
+                .map(x -> x.getDateTime().atZone(ZoneId.systemDefault())
+                        .withZoneSameInstant(ZoneOffset.ofHours(timeZone))).toList();
+
+        zonedDateTimeList.forEach(x -> resultArray[x.getHour()]++);
+
+        return new ArrayList<>(Arrays.asList(resultArray));
+    }
+
+    public List<DateDto> getDateStats(Long urlId, int timeZone) {
+        List<DateDto> resultList = new ArrayList<>();
+
+        LocalDate date = LocalDate.now().minusDays(9);
+        while (!date.equals(LocalDate.now())) {
+            resultList.add(new DateDto(date.format(DateTimeFormatter.ISO_DATE)));
+            date = date.plusDays(1);
+        }
+        resultList.add(new DateDto(date.format(DateTimeFormatter.ISO_DATE)));
+
+        List<LocalDateTime> dateTimeListUserTimeZone = timeRepository.findByUrlId(urlId).stream()
+                .map(x -> x.getDateTime().atZone(ZoneId.systemDefault())
+                        .withZoneSameInstant(ZoneOffset.ofHours(timeZone)).toLocalDateTime()).toList();
+
+        dateTimeListUserTimeZone.forEach(x -> {
+            for (DateDto dateDto : resultList) {
+                if (dateDto.getDate().equals(x.format(DateTimeFormatter.ISO_DATE))) {
+                    dateDto.addClick();
+                    break;
+                }
+            }
+        });
+
+        return resultList;
+    }
+
+    @Transactional
+    public void checkUtmTags(Url url, HttpServletRequest request) {
+        Map<String, String[]> params = request.getParameterMap();
+        if (params.containsKey(SOURCE) && params.containsKey(MEDIUM) && params.containsKey(CAMPAIGN)) {
+            String content = null;
+            if (params.containsKey(CONTENT)) content = params.get(CONTENT)[0];
+            Optional<UtmTag> utmTagOpt = utmRepository.findUtmTag(params.get(SOURCE)[0], params.get(MEDIUM)[0],
+                    params.get(CAMPAIGN)[0], content, url.getId());
+            UtmTag utmTag;
+            if (utmTagOpt.isPresent()) {
+                utmTag = utmTagOpt.get();
+                utmTag.setClicks(utmTag.getClicks() + 1);
+            } else {
+                utmTag = new UtmTag(params.get(SOURCE)[0], params.get(MEDIUM)[0],
+                        params.get(CAMPAIGN)[0], content, 1L, url);
+            }
+            utmRepository.save(utmTag);
+        }
+    }
+
     public List<UtmTagDto> getUtmList(Long urlId) {
         return utmRepository.findByUrlId(urlId).stream().map(utmMapper::toDto).toList();
     }
@@ -170,5 +201,12 @@ public class UtmStatService {
                 .append(CAMPAIGN).append("=").append(campaign);
         if (content != null && !content.isEmpty()) builder.append("&").append(CONTENT).append("=").append(content);
         return builder.toString();
+    }
+
+    @Transactional
+    public void deleteAllDataConnected(Long urlId) {
+        statRepository.deleteAllByUrlId(urlId);
+        utmRepository.deleteAllByUrlId(urlId);
+        timeRepository.deleteAllByUrlId(urlId);
     }
 }

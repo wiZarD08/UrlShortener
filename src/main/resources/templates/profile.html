@@ -179,6 +179,68 @@
         .new-url-btn:hover {
             background-color: #8bc2a4;
         }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #e74c3c;
+            font-size: 18px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .delete-btn:hover {
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .cancel-btn {
+            padding: 8px 20px;
+            background-color: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .confirm-btn {
+            padding: 8px 20px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -235,6 +297,7 @@
                                 </label>
                             </div>
                             <button class="action-btn" onclick="viewStats('${url.id}')">View Stats</button>
+                            <button class="delete-btn" onclick="showDeleteConfirmation('${url.id}')">🗑️</button>
                         `;
 
                         container.appendChild(urlItem);
@@ -275,21 +338,85 @@
             window.location.href = `/stats/${urlId}`;
         }
 
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text)
-                .then(() => {
-                    const originalText = event.target.textContent;
-                    event.target.textContent = '✓ Copied!';
-                    setTimeout(() => {
-                        event.target.textContent = originalText;
-                    }, 2000);
+        let currentUrlIdToDelete = null;
+
+        function showDeleteConfirmation(urlId) {
+            currentUrlIdToDelete = urlId;
+
+            getFullUrl(urlId).then(fullUrl => {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+            <div class="modal-content">
+                <h3>Delete URL</h3>
+                <p>Are you sure you want to delete this URL?</p>
+                <p><strong>${fullUrl}</strong></p>
+                <p>All statistics will be deleted and the short URL will no longer work.</p>
+                <div class="modal-buttons">
+                    <button class="cancel-btn" onclick="closeDeleteConfirmation()">Cancel</button>
+                    <button class="confirm-btn" onclick="confirmDelete()">Delete</button>
+                </div>
+            </div>
+        `;
+
+                document.body.appendChild(modal);
+            }).catch(error => {
+                console.error('Error loading URL details:', error);
+                alert('Failed to load URL details. Please try again.');
+            });
+        }
+
+
+        function getFullUrl(urlId) {
+            return fetch(`/api/urls/${urlId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('URL not found');
+                        }
+                        throw new Error('Failed to load URL details');
+                    }
+                    return response.json();
                 })
-                .catch(err => {
-                    console.error('Failed to copy:', err);
-                    event.target.textContent = '✗ Failed';
-                    setTimeout(() => {
-                        event.target.textContent = '⎘';
-                    }, 2000);
+                .then(urlDto => urlDto.fullUrl)
+                .catch(error => {
+                    console.error('Error loading URL details:', error);
+                    throw error;
+                });
+        }
+
+        function closeDeleteConfirmation() {
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) {
+                document.body.removeChild(modal);
+            }
+            currentUrlIdToDelete = null;
+        }
+
+        function confirmDelete() {
+            if (!currentUrlIdToDelete) return;
+
+            const token = document.querySelector('meta[name="_csrf"]').content;
+            const header = document.querySelector('meta[name="_csrf_header"]').content;
+
+            fetch(`/api/urls/${currentUrlIdToDelete}`, {
+                method: 'DELETE',
+                headers: {
+                    [header]: token
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        closeDeleteConfirmation();
+                        location.reload();
+                    } else {
+                        throw new Error('Failed to delete URL');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting URL:', error);
+                    alert('Failed to delete URL. Please try again.');
+                    closeDeleteConfirmation();
                 });
         }
     </script>

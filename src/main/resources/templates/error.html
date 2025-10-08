@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f5f5f5;
+        }
+
+        .error-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+
+        .error-code {
+            font-size: 48px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+
+        .error-type {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .home-button {
+            color: #333;
+            padding: 12px 30px;
+            text-decoration: none;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            display: inline-block;
+            background: white;
+        }
+
+        .home-button:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="error-container">
+        <div class="error-code" th:text="${status}">404</div>
+        <div class="error-type" th:text="${error}">Not Found</div>
+        <a href="/main" class="home-button">Go to Main Page</a>
+    </div>
+</body>
+
+</html>

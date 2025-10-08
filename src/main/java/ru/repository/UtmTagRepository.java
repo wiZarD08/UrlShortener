@@ -22,4 +22,6 @@ public interface UtmTagRepository extends JpaRepository<UtmTag, Long> {
                                 @Param("urlId") Long urlId);
 
     List<UtmTag> findByUrlId(Long urlId);
+
+    void deleteAllByUrlId(Long urlId);
 }

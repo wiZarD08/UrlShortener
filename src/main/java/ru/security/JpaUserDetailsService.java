@@ -25,8 +25,11 @@ public class JpaUserDetailsService implements UserDetailsService {
         if (userOpt.isEmpty()) throw new UsernameNotFoundException("Username not found");
         else {
             User user = userOpt.get();
+            List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+            if (user.getUsername().equals("admin"))
+                authorities = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
             return new org.springframework.security.core.userdetails.User
-                    (user.getUsername(), user.getPassword(), List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                    (user.getUsername(), user.getPassword(), authorities);
         }
     }
 }

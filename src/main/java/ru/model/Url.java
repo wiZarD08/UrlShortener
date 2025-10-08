@@ -3,6 +3,7 @@ package ru.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Entity
 @Data
+@NoArgsConstructor
 public class Url {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,9 +49,6 @@ public class Url {
     @OneToMany(mappedBy = "url")
     private List<UtmTag> utm_tags = new ArrayList<>();
 
-    public Url() {
-    }
-
     public Url(String fullUrl, String code, int days) {
         this.code = code;
         if (fullUrl.startsWith("http")) this.fullUrl = fullUrl;
@@ -68,5 +67,3 @@ public class Url {
         uniqueClicks++;
     }
 }
-
-// = ZonedDateTime.now(Clock.systemUTC());

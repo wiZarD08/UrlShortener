@@ -9,7 +9,7 @@
     <meta name="_csrf" th:content="${_csrf.token}" />
     <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <title>URL Shortener</title>
-    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="/main.css">
 </head>
 
 <body>
@@ -20,6 +20,10 @@
     </div>
 
     <div class="auth-container" th:unless="${anonymous}">
+        <form th:action="@{/logout}" method="post" class="logout-form">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <button type="submit" class="logout-btn">Logout</button>
+        </form>
         <a href="/profile" class="profile-chip">
             <div class="avatar" th:text="${username.substring(0,1)}"></div>
             <span class="auth-link" th:text="${username}"></span>
@@ -76,7 +80,7 @@
         </div>
     </div>
 
-    <script src="main.js"></script>
+    <script src="/main.js"></script>
 </body>
 
 </html>

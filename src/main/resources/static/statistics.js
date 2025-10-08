@@ -1,19 +1,9 @@
-// const path = window.location.pathname;
-// const urlId = path.split('/').pop();
+let utmSupport = true;
+const path = window.location.pathname;
+const urlId = path.split('/').pop();
+const userTimezoneOffset = -new Date().getTimezoneOffset() / 60;
 
-// if (!urlId || isNaN(urlId)) {
-//     document.getElementById('stats-content').innerHTML =
-//         '<div class="error-message">Error: No URL ID provided. Please return to your profile and try again.</div>';
-// } else {
-//     loadUrlDetails(urlId);
-//     loadVisitorStatistics(urlId);
-//     loadUtmStatistics(urlId);
-// }
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Your existing initialization code
-    const path = window.location.pathname;
-    const urlId = path.split('/').pop();
+document.addEventListener('DOMContentLoaded', function () {
 
     if (!urlId || isNaN(urlId)) {
         document.getElementById('stats-content').innerHTML =
@@ -21,6 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         loadUrlDetails(urlId);
         loadVisitorStatistics(urlId);
+        loadDateStatistics(urlId, userTimezoneOffset);
+        loadTimeStatistics(urlId, userTimezoneOffset);
         loadUtmStatistics(urlId);
     }
 });
@@ -64,6 +56,8 @@ function displayUrlDetails(urlDto) {
 
     document.getElementById('total-visitors').textContent = urlDto.clicks;
     document.getElementById('unique-visitors').textContent = urlDto.uniqueClicks;
+
+    if (urlDto.utmSupport === false) utmSupport = false;
 }
 
 function loadVisitorStatistics(urlId) {
@@ -78,6 +72,7 @@ function loadVisitorStatistics(urlId) {
             displayVisitorStatistics(statisticsData);
         })
         .catch(error => {
+            alert("caught error ", error, error.message);
             console.error('Error loading visitor statistics:', error);
             document.getElementById('stats-overview').innerHTML =
                 '<div class="error-message">Error loading visitor statistics. Please try again.</div>';
@@ -355,6 +350,148 @@ function createCountryCityList(countryCityCounts) {
     }
 }
 
+function loadDateStatistics(urlId, timeZone) {
+    fetch(`/api/stats/date/${urlId}?timeZone=${timeZone}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load date statistics');
+            }
+            return response.json();
+        })
+        .then(dateData => {
+            createDailyClicksChart(dateData);
+        })
+        .catch(error => {
+            console.error('Error loading date statistics:', error);
+        });
+}
+
+function loadTimeStatistics(urlId, timeZone) {
+    fetch(`/api/stats/time/${urlId}?timeZone=${timeZone}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load time statistics');
+            }
+            return response.json();
+        })
+        .then(timeData => {
+            createHourlyActivityChart(timeData);
+        })
+        .catch(error => {
+            console.error('Error loading time statistics:', error);
+        });
+}
+
+function createDailyClicksChart(dateData) {
+    try {
+        const canvas = document.getElementById('dailyClicksChart');
+        if (!canvas) {
+            console.error('Daily clicks chart canvas not found');
+            return;
+        }
+
+        const sortedData = dateData.sort((a, b) => a.date.localeCompare(b.date));
+
+        const labels = sortedData.map(item => {
+            const date = new Date(item.date);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+
+        const clicks = sortedData.map(item => item.clicks);
+
+        const ctx = canvas.getContext('2d');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Clicks',
+                    data: clicks,
+                    backgroundColor: 'rgba(160, 216, 179, 0.2)',
+                    borderColor: '#a0d8b3',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        console.log('Daily clicks chart created successfully');
+    } catch (error) {
+        console.error('Error creating daily clicks chart:', error);
+    }
+}
+
+function createHourlyActivityChart(timeData) {
+    try {
+        const canvas = document.getElementById('hourlyActivityChart');
+        if (!canvas) {
+            console.error('Hourly activity chart canvas not found');
+            return;
+        }
+
+        // Create labels for 24 hours
+        const labels = Array.from({ length: 24 }, (_, i) => {
+            return `${i.toString().padStart(2, '0')}:00`;
+        });
+
+        const ctx = canvas.getContext('2d');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Clicks',
+                    data: timeData,
+                    backgroundColor: 'rgba(74, 107, 255, 0.6)',
+                    borderColor: '#4a6bff',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        console.log('Hourly activity chart created successfully');
+    } catch (error) {
+        console.error('Error creating hourly activity chart:', error);
+    }
+}
+
 function loadUtmStatistics(urlId) {
     fetch(`/api/stats/utm/${urlId}`)
         .then(response => {
@@ -377,7 +514,7 @@ function displayUtmStatistics(utmData) {
     const container = document.getElementById('stats-content');
     const utmGenerator = document.getElementById('utm-generator-container');
 
-    if (!utmData || utmData.length === 0) {
+    if (!utmSupport) {
         container.innerHTML = '<div class="no-data">No UTM statistics available for this URL</div>';
         utmGenerator.style.display = 'none';
         return;
@@ -618,8 +755,8 @@ function extendUrl() {
 
     errorElement.style.display = 'none';
 
-    if (!days || days < 1 || days > 365) {
-        errorElement.textContent = 'Please enter a valid number between 1 and 365';
+    if (!days || days < 1) {
+        errorElement.textContent = 'Please enter a number more than 0';
         errorElement.style.display = 'block';
         return;
     }
@@ -638,12 +775,16 @@ function extendUrl() {
             'Content-Type': 'application/json',
             [header]: token
         },
+        credentials: 'include',
         body: JSON.stringify(days)
     })
         .then(response => {
+            if (response.redirected) {
+                throw new Error('Authentication required. Please log in again.');
+            }
             if (!response.ok) {
-                return response.text().then(errorText => {
-                    throw new Error(errorText || `HTTP ${response.status}`);
+                return response.json().then(errorData => {
+                    throw new Error(errorData.message || `HTTP ${response.status}`);
                 });
             }
             return response.json();
@@ -659,7 +800,7 @@ function extendUrl() {
         })
         .catch(error => {
             console.error('Error extending URL:', error);
-            errorElement.textContent = `Failed to extend URL: ${error.message}`;
+            errorElement.textContent = `${error.message}`;
             errorElement.style.display = 'block';
         })
         .finally(() => {

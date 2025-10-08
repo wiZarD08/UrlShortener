@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ru.service.UrlService;
+import ru.service.UtmStatService;
 import ru.web.dto.CreateUrlRequest;
 import ru.web.dto.UpdateUrlRequest;
 import ru.web.dto.UrlDto;
@@ -22,6 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UrlApiController {
     private final UrlService service;
+    private final UtmStatService statService;
 
     @GetMapping
     public List<UrlDto> getUrlList(HttpServletRequest request) {
@@ -59,6 +61,7 @@ public class UrlApiController {
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @urlService.isOwner(#id, authentication.name)")
     public UrlDto updateUrl(@RequestBody UpdateUrlRequest urlRequest, @PathVariable Long id, HttpServletRequest request) {
         return service.updateUrl(urlRequest, id, request);
     }
@@ -82,6 +85,7 @@ public class UrlApiController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @urlService.isOwner(#id, authentication.name)")
     public UrlDto deleteUrl(@PathVariable Long id, HttpServletRequest request) {
+        statService.deleteAllDataConnected(id);
         UrlDto urlDto = service.deleteUrl(id, request);
         if (urlDto == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "no url with " + id + " id");
         return urlDto;

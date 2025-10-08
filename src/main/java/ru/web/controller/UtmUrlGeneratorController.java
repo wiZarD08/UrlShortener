@@ -2,20 +2,13 @@ package ru.web.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import ru.repository.UrlRepository;
-import ru.repository.UserRepository;
 import ru.service.UrlService;
 import ru.service.UtmStatService;
 import ru.web.dto.UrlDto;
 import ru.web.dto.UrlWithUtmTags;
 import ru.web.dto.UtmTagDto;
-
-import java.net.http.HttpRequest;
 
 @RestController
 @RequestMapping("/utm/generate")
