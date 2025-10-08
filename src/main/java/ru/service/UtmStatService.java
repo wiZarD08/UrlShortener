@@ -71,7 +71,14 @@ public class UtmStatService {
                 .build();
     }
 
-    public void writeStatistics(Url url, HttpServletRequest request) {
+    public void saveStatUtm(Url url, HttpServletRequest request) {
+        if (url.getUser() != null) {
+            checkUtmTags(url, request);
+            writeStatistics(url, request);
+        }
+    }
+
+    private void writeStatistics(Url url, HttpServletRequest request) {
         Statistics statistics = new Statistics();
         statistics.setIpAddress(getRequestIpAddress(request));
 
@@ -172,7 +179,7 @@ public class UtmStatService {
     }
 
     @Transactional
-    public void checkUtmTags(Url url, HttpServletRequest request) {
+    private void checkUtmTags(Url url, HttpServletRequest request) {
         Map<String, String[]> params = request.getParameterMap();
         if (params.containsKey(SOURCE) && params.containsKey(MEDIUM) && params.containsKey(CAMPAIGN)) {
             String content = null;

@@ -143,14 +143,6 @@ public class UrlService {
         return urlDtoMapper.toDto(url, request);
     }
 
-    public boolean deleteIfExpired(Url url) {
-        if (url.getExpirationDate().isBefore(LocalDate.now())) {
-            urlRepository.deleteById(url.getId());
-            return true;
-        }
-        return false;
-    }
-
     public UrlDto deleteUrl(Long id, HttpServletRequest request) {
         return urlRepository.findById(id).map(x -> {
             urlRepository.deleteById(id);

@@ -101,14 +101,8 @@ public class WebController {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return "notFoundError";
         }
-        if (!urlService.deleteIfExpired(urlOpt.get())) {
-            if (urlOpt.get().getUser() != null) {
-                utmStatService.checkUtmTags(urlOpt.get(), request);
-                utmStatService.writeStatistics(urlOpt.get(), request);
-            }
-            return "redirect:" + urlOpt.get().getFullUrl();
-        }
-        return "notFoundError";
+        utmStatService.saveStatUtm(urlOpt.get(), request);
+        return "redirect:" + urlOpt.get().getFullUrl();
     }
 
     @GetMapping("/str/{customPath}")
@@ -118,12 +112,8 @@ public class WebController {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return "notFoundError";
         }
-        if (!urlService.deleteIfExpired(urlOpt.get())) {
-            utmStatService.checkUtmTags(urlOpt.get(), request);
-            utmStatService.writeStatistics(urlOpt.get(), request);
-            return "redirect:" + urlOpt.get().getFullUrl();
-        }
-        return "notFoundError";
+        utmStatService.saveStatUtm(urlOpt.get(), request);
+        return "redirect:" + urlOpt.get().getFullUrl();
     }
 
     @GetMapping("/main")
