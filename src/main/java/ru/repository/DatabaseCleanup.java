@@ -17,7 +17,7 @@ public class DatabaseCleanup {
     private final ClickTimeRepository timeRepository;
     private final UtmStatService statService;
 
-    @Scheduled(cron = "0 40 23 * * ?")
+    @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void dbCleanup() {
         deleteExpiredUrls();
