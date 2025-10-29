@@ -20,7 +20,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-aop")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     implementation("org.postgresql:postgresql:42.7.3")
 
