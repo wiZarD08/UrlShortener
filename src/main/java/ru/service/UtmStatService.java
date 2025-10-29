@@ -24,6 +24,7 @@ import ru.web.mapper.UtmTagDtoMapper;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -62,8 +63,8 @@ public class UtmStatService {
         this.timeRepository = timeRepository;
         this.statMapper = statMapper;
 
-        File database = new ClassPathResource(GEO_LITE_DB).getFile();
-        dbReader = new DatabaseReader.Builder(database).build();
+        InputStream databaseStream = getClass().getClassLoader().getResourceAsStream(GEO_LITE_DB);
+        dbReader = new DatabaseReader.Builder(databaseStream).build();
         userAgentAnalyzer = UserAgentAnalyzer.newBuilder()
                 .withField(UserAgent.DEVICE_CLASS)
                 .withField(UserAgent.AGENT_NAME)
