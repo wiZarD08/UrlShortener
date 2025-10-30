@@ -19,6 +19,8 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
+                .requiresChannel(channel ->
+                        channel.anyRequest().requiresSecure())
                 .authorizeHttpRequests((requests) ->
                         requests.requestMatchers("/profile", "/stats/**").authenticated()
                                 .requestMatchers(HttpMethod.PATCH, "/api/urls/**").authenticated()
